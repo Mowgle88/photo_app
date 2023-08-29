@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'components/image_input.dart';
 
@@ -31,10 +32,11 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final _commentController = TextEditingController();
+  File? _selectedImage;
 
   void _sendImage() {
     final enteredComment = _commentController.text;
-    print(enteredComment);
+    print(_selectedImage);
   }
 
   @override
@@ -53,7 +55,11 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const ImageInput(),
+            ImageInput(
+              onPickImage: (image) {
+                _selectedImage = image;
+              },
+            ),
             const SizedBox(height: 16),
             TextField(
               decoration: const InputDecoration(
