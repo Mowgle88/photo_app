@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:location/location.dart';
 import 'components/image_input.dart';
 
 void main() {
@@ -32,11 +33,18 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final _commentController = TextEditingController();
+  final Location location = Location();
   File? _selectedImage;
+  LocationData? _locationData;
 
-  void _sendImage() {
+  void _sendImage() async {
     final enteredComment = _commentController.text;
-    print(_selectedImage);
+
+    _locationData = await location.getLocation();
+    final latitude = _locationData!.latitude;
+    final longitude = _locationData!.longitude;
+
+    print('$latitude, $longitude');
   }
 
   @override
