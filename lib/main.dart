@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
+import 'models/model.dart';
 import 'widgets/image_input.dart';
 import 'package:http/http.dart' as http;
 import 'package:geocoding/geocoding.dart' as geocoding;
@@ -35,11 +36,54 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final _commentController = TextEditingController();
-  final Location location = Location();
   File? _selectedImage;
-  LocationData? _locationData;
+  PlaceLocation? _locationData;
   var _isSending = false;
   String address = '';
+
+  Future<PlaceLocation> _getCurrentLocation() async {
+    Location location = Location();
+
+    bool serviceEnabled;
+    PermissionStatus permissionGranted;
+    LocationData locationData;
+
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        return const PlaceLocation();
+      }
+    }
+
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
+        return const PlaceLocation();
+      }
+    }
+
+    locationData = await location.getLocation();
+    final lat = locationData.latitude;
+    final lng = locationData.longitude;
+
+    if (lat == null || lng == null) {
+      return const PlaceLocation();
+    }
+
+    return PlaceLocation(latitude: lat, longitude: lng);
+  }
+
+  Future<void> _getAddress(latitude, longitude) async {
+    List<geocoding.Placemark> placemarks =
+        await geocoding.placemarkFromCoordinates(latitude!, longitude!);
+
+    setState(() {
+      address =
+          '${placemarks.first.street}, ${placemarks.first.locality}, ${placemarks.first.administrativeArea}, ${placemarks.first.postalCode}, ${placemarks.first.country}';
+    });
+  }
 
   Future<void> uploadImage(context) async {
     setState(() {
@@ -47,15 +91,9 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     final enteredComment = _commentController.text;
-    _locationData = await location.getLocation();
+    _locationData = await _getCurrentLocation();
     final latitude = _locationData!.latitude;
     final longitude = _locationData!.longitude;
-
-    List<geocoding.Placemark> placemarks =
-        await geocoding.placemarkFromCoordinates(latitude!, longitude!);
-
-    address =
-        '${placemarks.first.street}, ${placemarks.first.locality}, ${placemarks.first.administrativeArea}, ${placemarks.first.postalCode}, ${placemarks.first.country}';
 
     final stream = http.ByteStream(_selectedImage!.openRead());
     stream.cast();
@@ -88,6 +126,8 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _isSending = false;
     });
+
+    _getAddress(latitude, longitude);
   }
 
   @override
