@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
-import 'components/image_input.dart';
+import 'widgets/image_input.dart';
 
 void main() {
   runApp(const MyApp());
