@@ -123,15 +123,17 @@ class _MyHomePageState extends State<MyHomePage> {
                       horizontal: 24,
                       vertical: 16,
                     ),
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                          colors: [
-                            Colors.transparent,
-                            Colors.black54,
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter),
-                    ),
+                    decoration: address != ''
+                        ? const BoxDecoration(
+                            gradient: LinearGradient(
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black54,
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter),
+                          )
+                        : null,
                     child: Text(
                       address,
                       textAlign: TextAlign.center,
