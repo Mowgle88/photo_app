@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'widgets/image_input.dart';
 import 'package:http/http.dart' as http;
+import 'package:geocoding/geocoding.dart' as geocoding;
 
 void main() {
   runApp(const MyApp());
@@ -38,6 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
   File? _selectedImage;
   LocationData? _locationData;
   var _isSending = false;
+  String address = '';
 
   Future<void> uploadImage(context) async {
     setState(() {
@@ -48,6 +50,12 @@ class _MyHomePageState extends State<MyHomePage> {
     _locationData = await location.getLocation();
     final latitude = _locationData!.latitude;
     final longitude = _locationData!.longitude;
+
+    List<geocoding.Placemark> placemarks =
+        await geocoding.placemarkFromCoordinates(latitude!, longitude!);
+
+    address =
+        '${placemarks.first.street}, ${placemarks.first.locality}, ${placemarks.first.administrativeArea}, ${placemarks.first.postalCode}, ${placemarks.first.country}';
 
     final stream = http.ByteStream(_selectedImage!.openRead());
     stream.cast();
@@ -98,10 +106,42 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            ImageInput(
-              onPickImage: (image) {
-                _selectedImage = image;
-              },
+            Stack(
+              children: [
+                ImageInput(
+                  onPickImage: (image) {
+                    _selectedImage = image;
+                  },
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                          colors: [
+                            Colors.transparent,
+                            Colors.black54,
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter),
+                    ),
+                    child: Text(
+                      address,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                            color: Theme.of(context).colorScheme.onBackground,
+                          ),
+                    ),
+                  ),
+                )
+              ],
             ),
             const SizedBox(height: 16),
             TextField(
